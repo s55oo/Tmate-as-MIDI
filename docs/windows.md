@@ -131,6 +131,8 @@ and the original `Tmate.exe` is 32-bit.
 The `windows/TmateV1_2.zip` and `windows/Tmate_WINUSBdriver.zip` files are kept
 for reference and for a Windows 7 virtual machine. They are not part of the
 recommended setup and are not needed for this controller.
+They are original vendor software: they are included in the Windows ZIP
+package, but not in the public Git repository.
 
 ### If you want the original Tmate.exe
 

@@ -151,7 +151,10 @@ an unsigned 2008 driver.
 
 Do not disable driver signature enforcement or install the old INF on Windows
 10/11. The original app is only an option in a Windows 7 VM, and it is not
-needed for this package. The original zips are in `windows/` for reference.
+needed for this package. The original zips (`TmateV1_2.zip`,
+`Tmate_WINUSBdriver.zip`) are vendor software and are not in this Git
+repository; a locally built `TMate-1.0-Windows.zip` includes them in `windows/`
+for reference when they are present in the checkout.
 You do not need a Windows 7 VM for the recommended WinUSB setup.
 
 ### Alternative: WSL2
