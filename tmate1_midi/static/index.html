@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TMate MIDI</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d1117'/%3E%3Ccircle cx='32' cy='28' r='17' fill='none' stroke='%23e8962e' stroke-width='5'/%3E%3Cline x1='32' y1='28' x2='32' y2='15' stroke='%23ffb85c' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='20' cy='53' r='4' fill='%233fb950'/%3E%3Ccircle cx='32' cy='53' r='4' fill='%233fb950'/%3E%3Ccircle cx='44' cy='53' r='4' fill='%233fb950'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --panel-2: #1c2330;
+  --line: #2d3748;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #e8962e;
+  --accent-2: #ffb85c;
+  --ok: #3fb950;
+  --warn: #d29922;
+  --err: #f85149;
+  --blue: #58a6ff;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(900px 500px at 15% -10%, rgba(232,150,46,.13), transparent 60%),
+    radial-gradient(800px 450px at 100% 0%, rgba(88,166,255,.09), transparent 55%),
+    var(--bg);
+}
+h1, h2 { margin: 0; letter-spacing: -.02em; }
+h1 { font-size: 26px; }
+h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.sub { margin: 4px 0 0; color: var(--muted); }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 24px; }
+header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.chips { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; max-width: 620px; }
+.chip {
+  display: inline-block; padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px;
+  background: rgba(22,27,34,.8); color: var(--muted); font-size: 12px;
+  max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.chip.ok { color: var(--ok); border-color: rgba(63,185,80,.45); }
+.chip.warn { color: var(--warn); border-color: rgba(210,153,34,.45); }
+.chip.err { color: var(--err); border-color: rgba(248,81,73,.45); }
+main { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 18px; align-items: start; }
+.panel {
+  background: linear-gradient(180deg, rgba(28,35,48,.9), rgba(22,27,34,.95));
+  border: 1px solid var(--line); border-radius: 14px; padding: 18px;
+  box-shadow: 0 14px 40px rgba(0,0,0,.28);
+}
+.device-panel { position: sticky; top: 18px; }
+.tmate {
+  margin-top: 14px; padding: 24px 20px 20px; border-radius: 22px;
+  background: linear-gradient(160deg, #1d2532, #11161f 70%);
+  border: 1px solid #38465c; display: flex; flex-direction: column; align-items: center; gap: 22px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+.wheel {
+  width: 154px; height: 154px; border-radius: 50%; position: relative; cursor: pointer;
+  background: radial-gradient(circle at 35% 30%, #596579, #26303d 58%, #0a0e14 100%);
+  border: 3px solid #3b485c; outline: none;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+.wheel::before {
+  content: ""; position: absolute; left: calc(50% - 3px); top: 21px;
+  width: 6px; height: 49px; border-radius: 3px;
+  background: linear-gradient(var(--accent-2), var(--accent));
+  box-shadow: 0 0 10px rgba(232,150,46,.45);
+}
+.wheel::after {
+  content: ""; position: absolute; inset: 50% auto auto 50%; width: 30px; height: 30px;
+  margin: -15px 0 0 -15px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #69778e, #242d3a 70%);
+  border: 1px solid #3b485c;
+}
+.wheel-label {
+  position: absolute; left: 0; right: 0; bottom: 13px; text-align: center;
+  color: var(--muted); font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+}
+.wheel:hover { border-color: var(--accent); }
+.wheel.selected { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(232,150,46,.16), 0 0 30px rgba(232,150,46,.18); }
+.wheel.active { border-color: var(--accent-2); box-shadow: 0 0 0 6px rgba(232,150,46,.22), 0 0 34px rgba(232,150,46,.35); }
+.keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; }
+.key {
+  aspect-ratio: 1; border-radius: 50%; cursor: pointer; color: var(--text);
+  background: radial-gradient(circle at 35% 30%, #46536a, #222b38 70%);
+  border: 2px solid #3b485c; font-size: 16px; font-weight: 650; outline: none;
+  transition: transform .1s ease, box-shadow .12s ease, border-color .12s ease;
+}
+.key:hover { border-color: var(--accent); transform: translateY(-1px); }
+.key.selected { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(232,150,46,.16); }
+.key.active { border-color: var(--accent-2); box-shadow: 0 0 0 6px rgba(232,150,46,.22); }
+.port-box { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.port-box label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+.port-box select { width: 100%; }
+.hint { color: var(--muted); font-size: 12px; margin: 10px 0 0; }
+.field { margin-bottom: 13px; }
+.field label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 5px; }
+.field .help { color: var(--muted); font-size: 11px; margin-top: 5px; }
+input[type="number"], select, .port-box button {
+  width: 100%; padding: 9px 10px; color: var(--text); background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: 8px; font: inherit; outline: none;
+}
+input[type="number"]:focus, select:focus { border-color: var(--accent); }
+.port-box button { width: auto; cursor: pointer; align-self: flex-start; }
+button {
+  color: var(--text); background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 12px; font: inherit; cursor: pointer;
+}
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #1d2330; font-weight: 700; }
+.check { display: flex; align-items: center; gap: 8px; margin: 9px 0; color: var(--text); }
+.check input { width: 16px; height: 16px; accent-color: var(--accent); }
+.preview {
+  margin-top: 14px; padding: 12px; border-radius: 10px; background: #0a0e14;
+  border: 1px solid #253044; display: grid; gap: 7px; font-family: ui-monospace, "Cascadia Code", monospace;
+}
+.preview div { display: flex; justify-content: space-between; gap: 12px; }
+.preview span { color: var(--muted); }
+.preview code { color: var(--accent-2); }
+.test-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.save-line { margin: 12px 0 0; color: var(--muted); font-size: 12px; }
+.save-line.pending { color: var(--warn); }
+.save-line.ok { color: var(--ok); }
+.save-line.err { color: var(--err); }
+.activity-panel { margin-top: 18px; }
+.activity-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #243044; }
+th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+td { font-size: 13px; }
+td.mono { font-family: ui-monospace, "Cascadia Code", monospace; color: var(--accent-2); }
+tr.failed td { color: var(--err); }
+footer { margin-top: 18px; color: var(--muted); font-size: 12px; }
+footer code { color: var(--text); }
+footer a { color: var(--accent); }
+.toast {
+  position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 20px);
+  background: #1f6feb; color: white; padding: 10px 16px; border-radius: 9px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45); opacity: 0; pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease; max-width: 80vw;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast.err { background: var(--err); }
+@media (max-width: 880px) {
+  .wrap { padding: 14px; }
+  header { flex-direction: column; }
+  .chips { justify-content: flex-start; }
+  main { grid-template-columns: 1fr; }
+  .device-panel { position: static; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>TMate MIDI</h1>
+      <p class="sub">One wheel and four keys as a MIDI controller.</p>
+    </div>
+    <div class="chips">
+      <span id="chip-device" class="chip">TMate: starting…</span>
+      <span id="chip-midi" class="chip">MIDI: starting…</span>
+      <span id="chip-save" class="chip">Config loaded</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel device-panel">
+      <h2>Device</h2>
+      <div class="tmate">
+        <div id="ctl-wheel" class="wheel ctl" data-control="wheel" onclick="selectControl('wheel')"
+             role="button" tabindex="0" aria-label="Wheel"
+             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectControl('wheel');}">
+          <span class="wheel-label">wheel</span>
+        </div>
+        <div class="keys">
+          <button id="ctl-key1" class="key ctl" data-control="key1" onclick="selectControl('key1')">1</button>
+          <button id="ctl-key2" class="key ctl" data-control="key2" onclick="selectControl('key2')">2</button>
+          <button id="ctl-key3" class="key ctl" data-control="key3" onclick="selectControl('key3')">3</button>
+          <button id="ctl-key4" class="key ctl" data-control="key4" onclick="selectControl('key4')">4</button>
+        </div>
+      </div>
+      <div class="port-box">
+        <label for="port-select">MIDI output</label>
+        <select id="port-select" onchange="setPort(this.value)"></select>
+        <button onclick="refresh(true)">Refresh ports</button>
+      </div>
+      <p class="hint" id="port-hint"></p>
+      <p class="hint" id="device-status"></p>
+    </section>
+
+    <section class="panel">
+      <h2 id="settings-title">Wheel</h2>
+      <div id="settings"></div>
+      <div class="preview" id="preview"></div>
+      <div class="test-row" id="test-row"></div>
+      <div class="actions">
+        <button onclick="reloadConfig()">Reload from disk</button>
+        <button onclick="resetConfig()">Reset defaults</button>
+      </div>
+      <p class="save-line" id="save-status">Every change is saved automatically.</p>
+    </section>
+  </main>
+
+  <section class="panel activity-panel">
+    <div class="activity-head">
+      <h2>MIDI activity</h2>
+      <button onclick="clearActivity()">Clear</button>
+    </div>
+    <table>
+      <thead><tr><th>Time</th><th>Control</th><th>Message</th><th>Hex</th></tr></thead>
+      <tbody id="activity-body"></tbody>
+    </table>
+    <p class="hint" id="activity-empty">Turn the wheel or press a key to see messages.</p>
+  </section>
+
+  <footer>
+    Config: <code id="config-path">…</code> ·
+    <a href="#" onclick="quitApp(); return false;">Quit TMate MIDI</a>
+  </footer>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+"use strict";
+
+let state = null;
+let config = null;
+let selected = "wheel";
+let saveTimer = null;
+let portsSignature = "";
+let highlightTimer = null;
+let toastTimer = null;
+
+const $ = (id) => document.getElementById(id);
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function esc(text) {
+  return String(text).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function hex(bytes) {
+  return bytes.map((b) => (b & 0xff).toString(16).toUpperCase().padStart(2, "0")).join(" ");
+}
+
+function clamp(number, low, high) {
+  number = Number(number);
+  if (!Number.isFinite(number)) return low;
+  return Math.max(low, Math.min(high, Math.round(number)));
+}
+
+function field(label, control, help) {
+  return `<div class="field"><label>${esc(label)}</label>${control}` +
+    (help ? `<div class="help">${esc(help)}</div>` : "") + "</div>";
+}
+
+function numberInput(fieldName, value, low, high) {
+  return `<input type="number" min="${low}" max="${high}" value="${Number(value)}" ` +
+    `onchange="setField('${fieldName}', this.value, this)">`;
+}
+
+function selectInput(fieldName, value, options) {
+  return `<select onchange="setField('${fieldName}', this.value)">` +
+    options.map(([v, label]) =>
+      `<option value="${v}"${v === value ? " selected" : ""}>${esc(label)}</option>`
+    ).join("") + "</select>";
+}
+
+async function refresh(forcePorts = false) {
+  try {
+    const url = forcePorts ? "/api/state?ports=1" : "/api/state";
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    state = await response.json();
+    if (!config) {
+      config = clone(state.config);
+      renderAll();
+    } else {
+      renderPorts();
+    }
+    updateStatus();
+    updateActivity();
+    updateHighlight();
+  } catch (error) {
+    const device = $("chip-device");
+    device.textContent = "TMate: offline";
+    device.className = "chip err";
+    const midi = $("chip-midi");
+    midi.textContent = "MIDI: offline";
+    midi.className = "chip err";
+  }
+}
+
+function renderAll() {
+  if (!config) return;
+  renderPorts();
+  selectControl(selected);
+  $("config-path").textContent = state ? state.config_path : "";
+}
+
+function renderPorts() {
+  if (!state || !config) return;
+  const select = $("port-select");
+  const ports = (state.midi && state.midi.ports) || [];
+  const current = config.midi.port || "TMate 1.0";
+  // Windows/RtMidi lists a loopMIDI port "TMate 1.0" as "TMate 1.0 1".
+  const resolved = (state.midi && state.midi.resolved) || current;
+  const virtualMode = config.midi.virtual !== false;
+  const canVirtual = !!(state.midi && state.midi.virtual_supported);
+  const signature = JSON.stringify([
+    ports, current, resolved, virtualMode, canVirtual,
+    state.midi && state.midi.ports_error
+  ]);
+  if (signature === portsSignature && select.options.length) return;
+  portsSignature = signature;
+
+  const options = [];
+  if (canVirtual && virtualMode) {
+    options.push({ value: "__virtual__", label: "Virtual port — " + current, selected: true });
+  } else if (canVirtual) {
+    options.push({ value: "__virtual__", label: "Create a virtual port", selected: false });
+  }
+
+  let found = false;
+  for (const name of ports) {
+    const isCurrent = name === current || name === resolved;
+    if (isCurrent) found = true;
+    options.push({
+      value: name,
+      label: name,
+      selected: (!virtualMode || !canVirtual) && isCurrent
+    });
+  }
+  if ((!virtualMode || !canVirtual) && !found && current) {
+    options.unshift({ value: current, label: current + " (not found)", selected: true });
+  }
+  if (!options.length) {
+    options.push({ value: "", label: "No MIDI outputs found", selected: true, disabled: true });
+  }
+
+  select.innerHTML = "";
+  for (const option of options) {
+    const element = document.createElement("option");
+    element.value = option.value;
+    element.textContent = option.label;
+    element.selected = !!option.selected;
+    element.disabled = !!option.disabled;
+    select.appendChild(element);
+  }
+
+  let hint;
+  if (state.midi && state.midi.ports_error) {
+    hint = "MIDI enumeration error: " + state.midi.ports_error;
+  } else if (!ports.length && canVirtual) {
+    hint = "Virtual ALSA port mode: the port is created when MIDI starts.";
+  } else if (!ports.length) {
+    hint = "No MIDI outputs found. On Windows, create a port named “" + current +
+      "” in loopMIDI, then click Refresh ports.";
+  } else {
+    hint = "Select the loopMIDI / virtual port that your MIDI software listens to.";
+  }
+  $("port-hint").textContent = hint;
+}
+
+function setPort(value) {
+  if (!config) return;
+  if (value === "__virtual__") {
+    config.midi.virtual = "auto";
+    config.midi.port = "TMate 1.0";
+  } else if (value) {
+    config.midi.virtual = false;
+    config.midi.port = value;
+  }
+  renderPorts();
+  scheduleSave();
+}
+
+function selectControl(name) {
+  if (!config) return;
+  selected = name;
+  document.querySelectorAll(".ctl").forEach((element) => {
+    element.classList.toggle("selected", element.dataset.control === name);
+  });
+  renderForm();
+  renderPreview();
+}
+
+function renderForm() {
+  if (!config) return;
+  const settings = $("settings");
+
+  if (selected === "wheel") {
+    const w = config.wheel;
+    $("settings-title").textContent = "Wheel";
+    settings.innerHTML =
+      field("MIDI channel", numberInput("channel", w.channel, 1, 16), "1–16") +
+      field("CC number", numberInput("cc", w.cc, 0, 127), "0–127") +
+      field("Relative format", selectInput("format", w.format, [
+        ["offset", "64-centered (offset)"],
+        ["twos", "2's complement (7-bit)"],
+        ["increment", "Increment / decrement (1/127)"]
+      ]), "Match what the target software expects for a relative encoder.") +
+      field("Step multiplier", numberInput("step", w.step, 1, 16),
+        "One hardware step sends this many MIDI steps.") +
+      `<label class="check"><input type="checkbox" ${w.invert ? "checked" : ""} ` +
+        `onchange="setField('invert', this.checked)"> Invert rotation (hardware clockwise is negative)</label>` +
+      `<label class="check"><input type="checkbox" ${w.acceleration ? "checked" : ""} ` +
+        `onchange="setField('acceleration', this.checked)"> Accelerate fast turns</label>`;
+    $("test-row").innerHTML =
+      `<button onclick="testSelected(-1)">Test clockwise</button>` +
+      `<button onclick="testSelected(1)">Test counter-clockwise</button>`;
+    return;
+  }
+
+  const key = config.keys[selected];
+  $("settings-title").textContent = selected.replace("key", "Key ");
+  settings.innerHTML =
+    field("MIDI channel", numberInput("channel", key.channel, 1, 16), "1–16") +
+    field("Message type", selectInput("type", key.type, [
+      ["note", "Note"],
+      ["cc", "Control Change (CC)"]
+    ])) +
+    field(key.type === "note" ? "Note number" : "CC number",
+      numberInput("number", key.number, 0, 127), "0–127") +
+    (key.type === "note"
+      ? field("Velocity", numberInput("velocity", key.velocity, 0, 127),
+          "Sent on note-on; 0 = silent.")
+      : field("Value", numberInput("value", key.value, 0, 127),
+          "Sent on press; 0 on release (momentary).")) +
+    field("Behavior", selectInput("behavior", key.behavior, [
+      ["momentary", "Momentary"],
+      ["toggle", "Toggle"]
+    ]), key.behavior === "toggle" ? "Press toggles on/off." : "On while held, off on release.");
+  $("test-row").innerHTML =
+    `<button onclick="testSelected(-1)">Test press + release</button>`;
+}
+
+function setField(fieldName, value, element) {
+  if (!config) return;
+  const ranges = {
+    channel: [1, 16], cc: [0, 127], step: [1, 16],
+    number: [0, 127], velocity: [0, 127], value: [0, 127]
+  };
+  if (ranges[fieldName]) {
+    value = clamp(value, ranges[fieldName][0], ranges[fieldName][1]);
+    if (element) element.value = value;
+  }
+  const target = selected === "wheel" ? config.wheel : config.keys[selected];
+  target[fieldName] = value;
+  if (fieldName === "type") renderForm();
+  renderPreview();
+  scheduleSave();
+}
+
+function wheelBytes(raw) {
+  const w = config.wheel;
+  let delta = Number(raw);
+  if (w.invert) delta = -delta;
+  let value = Math.trunc(delta * Number(w.step || 1));
+  if (!value) return null;
+  let midiValue;
+  if (w.format === "offset") {
+    midiValue = Math.max(0, Math.min(127, 64 + value));
+  } else if (w.format === "twos") {
+    midiValue = value & 0x7f;
+  } else {
+    midiValue = value > 0 ? 127 : 1;
+  }
+  const status = 0xb0 | ((Number(w.channel) - 1) & 0x0f);
+  return [status, Number(w.cc), midiValue];
+}
+
+function keyBytes(on) {
+  const key = config.keys[selected];
+  const channel = (Number(key.channel) - 1) & 0x0f;
+  if (key.type === "note") {
+    return [
+      on ? (0x90 | channel) : (0x80 | channel),
+      Number(key.number),
+      on ? Number(key.velocity) : 0
+    ];
+  }
+  return [0xb0 | channel, Number(key.number), on ? Number(key.value) : 0];
+}
+
+function renderPreview() {
+  if (!config) return;
+  const preview = $("preview");
+  if (selected === "wheel") {
+    const clockwise = wheelBytes(-1);
+    const counter = wheelBytes(1);
+    preview.innerHTML =
+      `<div><span>Clockwise</span><code>${clockwise ? hex(clockwise) : "—"}</code></div>` +
+      `<div><span>Counter-clockwise</span><code>${counter ? hex(counter) : "—"}</code></div>`;
+    return;
+  }
+  const key = config.keys[selected];
+  const on = keyBytes(true);
+  const off = keyBytes(false);
+  const onLabel = key.behavior === "toggle" ? "On" : "Press";
+  const offLabel = key.behavior === "toggle" ? "Off" : "Release";
+  preview.innerHTML =
+    `<div><span>${onLabel}</span><code>${hex(on)}</code></div>` +
+    `<div><span>${offLabel}</span><code>${hex(off)}</code></div>`;
+}
+
+function updateStatus() {
+  if (!state) return;
+  const device = state.device || {};
+  const midi = state.midi || {};
+
+  const deviceChip = $("chip-device");
+  if (device.connected) {
+    deviceChip.textContent = "TMate: connected";
+    deviceChip.className = "chip ok";
+    deviceChip.title = "";
+  } else {
+    deviceChip.textContent = "TMate: " + (device.error || "offline");
+    deviceChip.className = "chip err";
+    deviceChip.title = device.error || "";
+  }
+
+  const midiChip = $("chip-midi");
+  if (midi.connected) {
+    midiChip.textContent = "MIDI: " + midi.port;
+    midiChip.className = "chip ok";
+    midiChip.title = "";
+  } else {
+    midiChip.textContent = "MIDI: " + (midi.error || "offline");
+    midiChip.className = "chip err";
+    midiChip.title = midi.error || "";
+  }
+
+  const saveChip = $("chip-save");
+  if (state.saved_at) {
+    saveChip.textContent = "Saved " + new Date(state.saved_at * 1000).toLocaleTimeString();
+    saveChip.className = "chip ok";
+  } else {
+    saveChip.textContent = "Config loaded";
+    saveChip.className = "chip";
+  }
+
+  $("config-path").textContent = state.config_path || "";
+  $("device-status").textContent = device.last_frame ? "last frame: " + device.last_frame : "";
+}
+
+function updateActivity() {
+  if (!state) return;
+  const rows = ((state.device && state.device.activity) || []).slice(0, 25);
+  const body = $("activity-body");
+  body.innerHTML = "";
+  for (const entry of rows) {
+    const row = document.createElement("tr");
+    if (!entry.sent) row.className = "failed";
+    const values = [
+      new Date(entry.ts * 1000).toLocaleTimeString(),
+      entry.control,
+      entry.message + (entry.sent ? "" : " — not sent"),
+      entry.hex
+    ];
+    for (let i = 0; i < values.length; i += 1) {
+      const cell = document.createElement("td");
+      cell.textContent = values[i];
+      if (i === 3) cell.className = "mono";
+      row.appendChild(cell);
+    }
+    body.appendChild(row);
+  }
+  $("activity-empty").style.display = rows.length ? "none" : "block";
+}
+
+function updateHighlight() {
+  if (!state) return;
+  const activity = (state.device && state.device.activity) || [];
+  const last = activity[0];
+  if (!last) return;
+  if (Date.now() / 1000 - last.ts > 0.6) return;
+  const element = document.querySelector(`.ctl[data-control="${last.control}"]`);
+  if (!element) return;
+  element.classList.add("active");
+  clearTimeout(highlightTimer);
+  highlightTimer = setTimeout(() => element.classList.remove("active"), 450);
+}
+
+function scheduleSave() {
+  const line = $("save-status");
+  line.textContent = "Unsaved changes…";
+  line.className = "save-line pending";
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveConfig, 350);
+}
+
+async function saveConfig() {
+  if (!config) return;
+  const line = $("save-status");
+  line.textContent = "Saving…";
+  line.className = "save-line pending";
+  try {
+    const response = await fetch("/api/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ config })
+    });
+    const data = await response.json();
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || ("HTTP " + response.status));
+    }
+    config = clone(data.config);
+    if (state) {
+      state.config = clone(data.config);
+      state.saved_at = data.saved_at;
+      state.midi = data.midi || state.midi;
+      state.device = data.device || state.device;
+    }
+    line.textContent = "Saved " + new Date(data.saved_at * 1000).toLocaleTimeString();
+    line.className = "save-line ok";
+    renderPorts();
+    updateStatus();
+    updateActivity();
+  } catch (error) {
+    line.textContent = "Save failed: " + error.message;
+    line.className = "save-line err";
+    showToast("Save failed: " + error.message, true);
+  }
+}
+
+async function testSelected(direction = -1) {
+  if (!config) return;
+  const body = selected === "wheel"
+    ? { control: selected, direction: Number(direction) }
+    : { control: selected };
+  try {
+    const response = await fetch("/api/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    const data = await response.json();
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || ("HTTP " + response.status));
+    }
+    showToast("Sent " + (data.messages || []).join(", "));
+    await refresh();
+  } catch (error) {
+    showToast("Test failed: " + error.message, true);
+  }
+}
+
+async function reloadConfig() {
+  if (!confirm("Reload the config file from disk? Unsaved changes will be lost.")) return;
+  try {
+    const response = await fetch("/api/reload", { method: "POST" });
+    const data = await response.json();
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || ("HTTP " + response.status));
+    }
+    config = clone(data.config);
+    if (state) {
+      state.config = clone(data.config);
+      state.saved_at = data.saved_at;
+      state.midi = data.midi || state.midi;
+      state.device = data.device || state.device;
+    }
+    portsSignature = "";
+    renderAll();
+    updateStatus();
+    updateActivity();
+    showToast("Config reloaded");
+  } catch (error) {
+    showToast("Reload failed: " + error.message, true);
+  }
+}
+
+async function resetConfig() {
+  if (!confirm("Reset every mapping to the defaults?")) return;
+  try {
+    const response = await fetch("/api/reset", { method: "POST" });
+    const data = await response.json();
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || ("HTTP " + response.status));
+    }
+    config = clone(data.config);
+    if (state) {
+      state.config = clone(data.config);
+      state.saved_at = data.saved_at;
+      state.midi = data.midi || state.midi;
+      state.device = data.device || state.device;
+    }
+    portsSignature = "";
+    renderAll();
+    updateStatus();
+    updateActivity();
+    showToast("Defaults restored");
+  } catch (error) {
+    showToast("Reset failed: " + error.message, true);
+  }
+}
+
+async function clearActivity() {
+  try {
+    await fetch("/api/clear-activity", { method: "POST" });
+    await refresh();
+  } catch (error) {
+    showToast("Clear failed: " + error.message, true);
+  }
+}
+
+async function quitApp() {
+  if (!confirm("Stop TMate MIDI?")) return;
+  try {
+    await fetch("/api/quit", { method: "POST" });
+  } catch (error) {
+    // The server may close before the response arrives.
+  }
+  document.body.innerHTML =
+    '<div class="wrap"><section class="panel"><h2>TMate MIDI stopped</h2>' +
+    '<p class="sub">You can close this tab.</p></section></div>';
+}
+
+function showToast(text, isError = false) {
+  const toast = $("toast");
+  if (!toast) return;
+  toast.textContent = text;
+  toast.className = "toast show" + (isError ? " err" : "");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.className = "toast";
+  }, 3000);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  refresh();
+  setInterval(() => refresh(), 350);
+});
+</script>
+</body>
+</html>

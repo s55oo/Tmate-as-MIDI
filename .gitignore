@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+dist/
+*.pass*.pdf
+# Original ELAD/WoodBoxRadio software and driver: vendor copyright, not
+# redistributed here. Kept locally for reference only.
+windows/*.zip

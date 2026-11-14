@@ -1,0 +1,4 @@
+# WoodBoxRadio/ELAD TMate 1.0 USB tuning knob.
+# The device is vendor-specific and has no kernel driver, so only permissions
+# and a stable symlink are needed.  Replace "plugdev" if you use another group.
+SUBSYSTEM=="usb", ATTR{idVendor}=="1721", ATTR{idProduct}=="0607", MODE="0660", GROUP="plugdev", SYMLINK+="tmate1"

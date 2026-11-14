@@ -1,0 +1,166 @@
+TMate 1.0 - Windows 10/11 Quick Start
+====================================
+
+This is the short version. The full instructions are in
+TMate-1.0-Windows-Manual.pdf and docs\windows.md.
+
+You do NOT need:
+  - a Windows 7 virtual machine;
+  - a custom or self-signed driver;
+  - the original Tmate.exe or the files in windows\.
+
+You DO need:
+  - Windows 10 or 11, 64-bit;
+  - administrator rights for the one-time driver step;
+  - Python 3.11 or newer, 64-bit, from python.org;
+  - Zadig (WinUSB installer);
+  - loopMIDI (virtual MIDI port);
+  - the TMate 1.0 and its USB cable.
+
+
+1. Extract the package
+----------------------
+Extract the whole ZIP to a normal folder, for example:
+
+  C:\Users\YOURNAME\Downloads\TMate-1.0-Windows
+
+Do not run the app from inside the ZIP. Open PowerShell in that folder:
+
+  cd "C:\Users\YOURNAME\Downloads\TMate-1.0-Windows"
+
+
+2. Install Python 3
+-------------------
+Download the 64-bit Python 3.12 (or 3.11+) installer from:
+
+  https://www.python.org/downloads/windows/
+
+Tick "Add python.exe to PATH", choose "Install Now", then reopen PowerShell.
+
+Check:
+
+  py --version
+  py -m pip --version
+
+
+3. Bind the TMate to WinUSB with Zadig
+--------------------------------------
+1. Plug the TMate directly into a rear USB port. Avoid hubs for now.
+2. Download Zadig from https://zadig.akeo.ie/
+3. Right-click zadig.exe and choose "Run as administrator".
+4. In Zadig: Options -> List All Devices.
+5. Select "Tmate 1.0 USB" (USB ID must be 1721 0607).
+6. Set the target driver to WinUSB.
+7. Click "Replace Driver" and wait for it to finish.
+8. Close Zadig.
+
+This installs the Microsoft-signed WinUSB driver. No test signing or
+"disable driver signature enforcement" is needed.
+
+Device Manager should show the TMate under "Universal Serial Bus devices"
+without a yellow warning triangle.
+
+
+4. Install the Python packages
+------------------------------
+In PowerShell, from the package folder:
+
+  py -m pip install -r requirements-midi.txt
+
+
+5. Create the MIDI port with loopMIDI
+-------------------------------------
+1. Install loopMIDI from:
+   https://www.tobias-erichsen.de/software/loopmidi.html
+2. Start loopMIDI.
+3. Create a port named exactly:  TMate 1.0
+4. Leave loopMIDI running.
+
+The app connects to this port. If the port is missing, the app reports a MIDI
+error or falls back to a virtual port when the backend supports it.
+
+
+5b. Run the setup check
+-----------------------
+Double-click setup-windows.cmd in the package folder. It installs the
+Python packages if needed, checks the WinUSB driver, does one safe test
+read from the TMate and confirms the loopMIDI port. Every line should
+say [OK]. Fix any [FAIL] line and run it again.
+
+
+6. Run the controller
+---------------------
+From the package folder:
+
+  py -m tmate1_midi
+
+Then open:
+
+  http://127.0.0.1:8067/
+
+Check:
+  - the TMate status chip is green;
+  - the MIDI status chip is green;
+  - the activity table shows CC messages when you turn the wheel;
+  - the Test buttons send notes or CCs for the four keys.
+
+Quick tests without the GUI:
+
+  py -m tmate1_midi --list-ports
+  py -m tmate1_midi --dry-run --duration 5 --no-web --no-tray --verbose
+  py -m tmate1.monitor --duration 5
+
+
+7. Use it in a DAW
+------------------
+1. Keep loopMIDI and tmate1_midi running.
+2. In the DAW, enable "TMate 1.0" as a MIDI input.
+3. For the wheel, map a knob/parameter in relative mode. Default is CC 1,
+   channel 1, 64-centered relative (value 65 = clockwise, 63 = counter-clockwise).
+4. For the keys, map note 60, 61, 62 or 63, or change them in the configurator.
+
+If the wheel turns the wrong way, untick "Invert" in the configurator.
+If it moves too fast or jumps, set acceleration off and check max delta.
+
+
+8. Stop / autostart
+-------------------
+Stop: quit from the tray icon, or press Ctrl+C in the PowerShell window,
+or click "Quit" in the configurator.
+
+Start automatically (no console window):
+
+  setup-windows.cmd -Autostart
+
+Remove it again with:  setup-windows.cmd -RemoveAutostart
+Also enable "Start with Windows" in loopMIDI.
+The full manual covers Task Scheduler.
+
+
+Troubleshooting in one minute
+-----------------------------
+"py is not recognised"
+  Reinstall Python and tick "Add python.exe to PATH"; reopen PowerShell.
+
+"The TMate is not found"
+  Replug it, try another rear USB port, close Tmate.exe / other USB programs,
+  and confirm Zadig installed WinUSB for 1721:0607.
+
+"TMate 1.0 MIDI port does not open"
+  Start loopMIDI first and create the port with exactly that name.
+  Run: py -m tmate1_midi --list-ports
+  (Windows shows it as "TMate 1.0 1"; that is normal and works.)
+
+"No response in the DAW"
+  Enable TMate 1.0 as an input in the DAW, arm/monitor the track, and check
+  that the activity table in http://127.0.0.1:8067/ is receiving messages.
+
+"Access denied / device busy"
+  Close Tmate.exe, the monitor, and any other program using the TMate.
+  Only one program can open the device at a time.
+
+Safety
+------
+Never call set_configuration(), never read endpoint 0x81, and do not use
+generic USB/HID tools, firmware updaters or the original 2008 driver on
+Windows 10/11. The app uses only safe endpoint-0 vendor control requests.

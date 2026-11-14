@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+"""Run the TMate 1.0 monitor from a checkout without installing a package."""
+
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from tmate1.monitor import main
+
+if __name__ == "__main__":
+    sys.exit(main())

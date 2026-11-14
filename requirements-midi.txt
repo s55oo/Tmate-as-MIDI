@@ -1,0 +1,18 @@
+# TMate 1.0 MIDI controller
+#
+# Debian/Raspberry Pi OS shortcut (avoids compiling python-rtmidi):
+#   sudo apt install python3-usb python3-mido python3-rtmidi
+# For pip installs, install the ALSA and libusb headers first:
+#   sudo apt install libasound2-dev libusb-1.0-0-dev
+
+pyusb>=1.2
+mido>=1.3
+python-rtmidi>=1.5
+Pillow>=10
+pystray>=0.19
+
+# Linux tray support for X11 sessions.
+python-xlib>=0.33; sys_platform == "linux"
+
+# Bundled libusb DLL on Windows so pyusb can reach the TMate.
+libusb-package>=1.0.26; sys_platform == "win32"
