@@ -199,3 +199,16 @@ Do not touch `xhci-hcd.0` if that controller has other storage attached.
 
 See [`docs/protocol.md`](docs/protocol.md) for the recovered control requests
 and frame layout.
+
+## License
+
+Copyright (C) 2026 s55oo
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version. It is distributed WITHOUT ANY WARRANTY; see [`LICENSE`](LICENSE) for
+the full text.
+
+The original ELAD/WoodBoxRadio software and driver archives (`windows/*.zip`)
+are not covered by this license and are not part of this repository.

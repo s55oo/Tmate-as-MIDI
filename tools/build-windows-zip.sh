@@ -32,7 +32,7 @@ fi
 
 PKG="$STAGE/$NAME"
 mkdir -p "$PKG"
-for item in README.md WINDOWS-QUICKSTART.txt TMate-1.0-Windows-Manual.pdf \
+for item in LICENSE README.md WINDOWS-QUICKSTART.txt TMate-1.0-Windows-Manual.pdf \
             requirements.txt requirements-midi.txt \
             setup-windows.ps1 setup-windows.cmd \
             bin docs tests tmate1 tmate1_midi windows; do

@@ -826,6 +826,7 @@ virtual machine; the old unsigned driver is not supported on Windows 10/11.
 | `TMate-1.0-Windows-Manual.pdf` | This manual |
 | `WINDOWS-QUICKSTART.txt` | One-page checklist |
 | `README.md` | Project overview and Linux notes |
+| `LICENSE` | GNU GPL v3 |
 | `requirements.txt` | pyusb only (monitor) |
 | `requirements-midi.txt` | Full MIDI controller dependencies |
 | `setup-windows.cmd` | Double-click setup and check |
