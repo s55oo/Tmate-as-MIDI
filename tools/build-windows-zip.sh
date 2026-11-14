@@ -8,7 +8,18 @@
 # - Windows scripts and text files converted to CRLF;
 # - __pycache__, intermediate manual passes, udev rules, tools/ and dist/ left out;
 # - unit tests are run first and must pass.
+#
+# Usage: tools/build-windows-zip.sh [--public]
+#   --public  leave out windows/ (original vendor software and driver, not
+#             ours to redistribute); use this for GitHub Releases.
 set -eu
+
+PUBLIC=0
+case "${1:-}" in
+    --public) PUBLIC=1 ;;
+    "") ;;
+    *) echo "usage: $0 [--public]" >&2; exit 2 ;;
+esac
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 NAME=TMate-1.0-Windows
@@ -42,6 +53,9 @@ for item in LICENSE README.md WINDOWS-QUICKSTART.txt TMate-1.0-Windows-Manual.pd
             requirements.txt requirements-midi.txt \
             setup-windows.ps1 setup-windows.cmd \
             bin docs tests tmate1 tmate1_midi windows; do
+    if [ "$item" = windows ] && { [ "$PUBLIC" = 1 ] || [ ! -d windows ]; }; then
+        continue
+    fi
     cp -R "$item" "$PKG/"
 done
 find "$PKG" -name __pycache__ -type d -prune -exec rm -rf {} +
