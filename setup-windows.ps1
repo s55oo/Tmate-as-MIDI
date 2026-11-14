@@ -109,7 +109,12 @@ if ($RemoveAutostart) {
     exit 0
 }
 
-Write-Host "TMate 1.0 - Windows setup" -ForegroundColor White
+$SoftwareVersion = "unknown"
+try {
+    $m = Select-String -Path (Join-Path $Root "tmate1_midi\__init__.py") -Pattern '__version__ = "([^"]+)"'
+    if ($m) { $SoftwareVersion = $m.Matches[0].Groups[1].Value }
+} catch { }
+Write-Host "TMate 1.0 - Windows setup (software v$SoftwareVersion)" -ForegroundColor White
 Write-Host "Package folder: $Root"
 if ($CheckOnly) { Write-Host "Check-only mode: nothing will be installed or changed." }
 

@@ -153,7 +153,7 @@ Do not disable driver signature enforcement or install the old INF on Windows
 10/11. The original app is only an option in a Windows 7 VM, and it is not
 needed for this package. The original zips (`TmateV1_2.zip`,
 `Tmate_WINUSBdriver.zip`) are vendor software and are not in this Git
-repository; a locally built `TMate-1.0-Windows.zip` includes them in `windows/`
+repository; a locally built `TMate-1.0-Windows-v<version>.zip` includes them in `windows/`
 for reference when they are present in the checkout.
 You do not need a Windows 7 VM for the recommended WinUSB setup.
 
@@ -174,7 +174,9 @@ tools/build-windows-zip.sh
 This runs the unit tests, rebuilds `TMate-1.0-Windows-Manual.pdf` from
 `docs/windows.md` (needs `python3-reportlab`; otherwise the existing PDF is
 shipped), converts the Windows scripts to CRLF, and writes
-`dist/TMate-1.0-Windows.zip` plus a `.sha256` file. To rebuild only the manual:
+`dist/TMate-1.0-Windows-v<version>.zip` plus a `.sha256` file. "TMate 1.0" is
+the device model; `<version>` is the software version, defined once in
+`tmate1_midi/__init__.py` (bump it there for a release). To rebuild only the manual:
 `python3 tools/build_windows_manual.py`.
 
 ## Safety note

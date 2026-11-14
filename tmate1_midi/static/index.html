@@ -35,6 +35,7 @@ h1, h2 { margin: 0; letter-spacing: -.02em; }
 h1 { font-size: 26px; }
 h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .sub { margin: 4px 0 0; color: var(--muted); }
+#app-version { margin-left: 8px; font-size: 12px; opacity: 0.8; }
 .wrap { max-width: 1180px; margin: 0 auto; padding: 24px; }
 header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
 .chips { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; max-width: 620px; }
@@ -161,7 +162,8 @@ footer a { color: var(--accent); }
   <header>
     <div>
       <h1>TMate MIDI</h1>
-      <p class="sub">One wheel and four keys as a MIDI controller.</p>
+      <p class="sub">One wheel and four keys as a MIDI controller.
+        <span id="app-version"></span></p>
     </div>
     <div class="chips">
       <span id="chip-device" class="chip">TMate: starting…</span>
@@ -283,6 +285,7 @@ async function refresh(forcePorts = false) {
     const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) throw new Error("HTTP " + response.status);
     state = await response.json();
+    if (state.version) $("app-version").textContent = "Software v" + state.version;
     if (!config) {
       config = clone(state.config);
       renderAll();

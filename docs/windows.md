@@ -9,6 +9,12 @@ controller on Windows 10 and Windows 11:
 - an optional tray icon keeps it running in the background;
 - a small monitor tool verifies the wheel and keys without using MIDI.
 
+**Versions:** "TMate 1.0" is the model name of the hardware. The software has
+its own version number, shown in the ZIP file name
+(`TMate-1.0-Windows-v<version>.zip`), in `VERSION.txt`, on the manual cover, in
+the configurator header, and by `py -m tmate1_midi --version`. Quote it when
+reporting a problem.
+
 The TMate is a vendor-specific USB device (`1721:0607`). Windows has no usable
 driver for it, so this package uses **WinUSB**, installed with Zadig. MIDI is
 routed through **loopMIDI**, because Windows does not provide a built-in virtual
@@ -827,6 +833,7 @@ virtual machine; the old unsigned driver is not supported on Windows 10/11.
 | `WINDOWS-QUICKSTART.txt` | One-page checklist |
 | `README.md` | Project overview and Linux notes |
 | `LICENSE` | GNU GPL v3 |
+| `VERSION.txt` | Software version of this package |
 | `requirements.txt` | pyusb only (monitor) |
 | `requirements-midi.txt` | Full MIDI controller dependencies |
 | `setup-windows.cmd` | Double-click setup and check |

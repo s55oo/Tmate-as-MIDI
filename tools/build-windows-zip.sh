@@ -1,7 +1,10 @@
 #!/bin/sh
-# Build dist/TMate-1.0-Windows.zip from this checkout.
+# Build dist/TMate-1.0-Windows-v<version>.zip from this checkout.
 #
-# - top-level folder TMate-1.0-Windows\ inside the ZIP;
+# "TMate 1.0" is the device model; <version> is the software version from
+# tmate1_midi/__init__.py (the single source of truth).
+#
+# - top-level folder TMate-1.0-Windows\ inside the ZIP (stable path for docs);
 # - Windows scripts and text files converted to CRLF;
 # - __pycache__, intermediate manual passes, udev rules, tools/ and dist/ left out;
 # - unit tests are run first and must pass.
@@ -9,6 +12,9 @@ set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 NAME=TMate-1.0-Windows
+VERSION=$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' "$ROOT/tmate1_midi/__init__.py")
+[ -n "$VERSION" ] || { echo "error: cannot read __version__" >&2; exit 1; }
+ZIP="$NAME-v$VERSION.zip"
 DIST="$ROOT/dist"
 STAGE=$(mktemp -d)
 trap 'rm -rf "$STAGE"' EXIT
@@ -48,8 +54,9 @@ find "$PKG" -type f \( -name '*.cmd' -o -name '*.ps1' -o -name '*.vbs' \
 done
 
 mkdir -p "$DIST"
-rm -f "$DIST/$NAME.zip"
-(cd "$STAGE" && zip -qr -X "$DIST/$NAME.zip" "$NAME")
-(cd "$DIST" && sha256sum "$NAME.zip" > "$NAME.zip.sha256")
-echo "built $DIST/$NAME.zip"
-cat "$DIST/$NAME.zip.sha256"
+printf '%s\r\n' "$VERSION" > "$PKG/VERSION.txt"
+rm -f "$DIST/$ZIP"
+(cd "$STAGE" && zip -qr -X "$DIST/$ZIP" "$NAME")
+(cd "$DIST" && sha256sum "$ZIP" > "$ZIP.sha256")
+echo "built $DIST/$ZIP"
+cat "$DIST/$ZIP.sha256"

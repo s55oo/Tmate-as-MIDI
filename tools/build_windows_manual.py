@@ -36,6 +36,9 @@ REPO = ROOT.parent
 SOURCE = REPO / "docs" / "windows.md"
 OUTPUT = REPO / "TMate-1.0-Windows-Manual.pdf"
 
+_VERSION_SRC = (REPO / "tmate1_midi" / "__init__.py").read_text(encoding="utf-8")
+VERSION = re.search(r'__version__\s*=\s*"([^"]+)"', _VERSION_SRC).group(1)
+
 FONT_DIR = Path("/usr/share/fonts/truetype/dejavu")
 pdfmetrics.registerFont(TTFont("DejaVuSans", str(FONT_DIR / "DejaVuSans.ttf")))
 pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", str(FONT_DIR / "DejaVuSans-Bold.ttf")))
@@ -615,7 +618,7 @@ class ManualDoc(BaseDocTemplate):
         canvas.drawString(
             22 * mm,
             PAGE_H - 86 * mm,
-            "WINDOWS 10 / 11  ·  64-BIT  ·  VERSION 0.1.0",
+            f"WINDOWS 10 / 11  ·  64-BIT  ·  SOFTWARE v{VERSION}",
         )
 
         canvas.setStrokeColor(colors.HexColor("#2b3f5c"))
@@ -668,7 +671,7 @@ class ManualDoc(BaseDocTemplate):
             PAGE_H - 15.5 * mm,
             "TMate 1.0  ·  Windows Setup & MIDI Controller Manual",
         )
-        canvas.drawRightString(PAGE_W - RIGHT, PAGE_H - 15.5 * mm, "v0.1.0")
+        canvas.drawRightString(PAGE_W - RIGHT, PAGE_H - 15.5 * mm, f"v{VERSION}")
         canvas.line(LEFT, 14 * mm, PAGE_W - RIGHT, 14 * mm)
         canvas.setFont("DejaVuSans", 8)
         canvas.drawString(LEFT, 9.5 * mm, "TMate 1.0  ·  Windows")
