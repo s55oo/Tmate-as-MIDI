@@ -26,6 +26,10 @@ in the main [README](../README.md#windows), and install the Python packages:
 py -m pip install -r requirements-midi.txt
 ```
 
+Or double-click `setup-windows.cmd` in the package folder: it installs the
+packages and checks Python, the WinUSB driver, the device and the loopMIDI port.
+The full Windows walkthrough is [windows.md](windows.md).
+
 If `python-rtmidi` fails to build on Linux, install the headers and retry:
 
 ```sh
@@ -98,6 +102,14 @@ Use [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html):
    configurator or with `--port`).
 3. Start `tmate1-midi`. It opens the loopMIDI port as its MIDI output.
 4. In your DAW, select the same loopMIDI port as a MIDI input.
+
+Windows adds a number to MIDI port names, so `--list-ports` and the configurator
+show the loopMIDI port as `TMate 1.0 1`. The app matches `midi.port` either
+exactly or with that trailing number (case-insensitive), so the default
+`TMate 1.0` works unchanged.
+
+To start at logon without a console window, run `setup-windows.cmd -Autostart`
+(it uses `bin\tmate1-midi-hidden.vbs`).
 
 The TMate itself must be bound to WinUSB with Zadig (see the main README). The
 MIDI port and the USB driver are independent: loopMIDI carries MIDI, WinUSB
@@ -197,8 +209,9 @@ curl -s -X POST -H 'Content-Type: application/json' \
 it to WinUSB.
 
 **MIDI port does not open** - on Linux install `python3-rtmidi`; on Windows start
-loopMIDI and make sure the port name matches `midi.port`. The status panel shows
-the exact error.
+loopMIDI and make sure the port name matches `midi.port` (a trailing Windows
+port number such as `TMate 1.0 1` is fine). `setup-windows.cmd -CheckOnly` checks
+the port. The status panel shows the exact error.
 
 **Nothing in the DAW** - on Linux the virtual port must be connected with
 `aconnect` or selected in the DAW; on Windows the DAW input must be the loopMIDI

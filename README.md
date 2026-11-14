@@ -99,8 +99,8 @@ signature enforcement, and the original `Tmate.exe` is 32-bit.
 
 After installing Python, Zadig/WinUSB and loopMIDI, double-click
 `setup-windows.cmd`: it installs the Python packages and checks the driver,
-device and MIDI port. Build the distributable ZIP on Linux with
-`tools/build-windows-zip.sh` (writes `dist/TMate-1.0-Windows.zip`).
+device and MIDI port. `setup-windows.cmd -Autostart` adds a hidden-console
+logon shortcut.
 
 Recommended: bind the device to WinUSB with Zadig and run this Python tool. No
 custom or self-signed driver is needed; WinUSB is Microsoft-signed.
@@ -126,7 +126,7 @@ custom or self-signed driver is needed; WinUSB is Microsoft-signed.
 
    `libusb-package` supplies `libusb-1.0.dll`; no manual DLL copy is needed.
    The POSIX `bin/tmate1-monitor` launcher is not used on Windows; use
-   `py -m tmate1.monitor` instead.
+   `py -m tmate1.monitor` or `bin\tmate1-monitor.cmd` instead.
 
    For the MIDI controller, install the MIDI requirements, create a loopMIDI
    port named `TMate 1.0`, and run `py -m tmate1_midi`. See
@@ -162,6 +162,20 @@ You do not need a Windows 7 VM for the recommended WinUSB setup.
 If you prefer the Linux tool unchanged, install `usbipd-win`, attach the device
 to WSL2, then run the tool inside WSL. The device is detached from Windows while
 it is attached to WSL.
+
+## Building the Windows package
+
+On Linux, from the checkout:
+
+```sh
+tools/build-windows-zip.sh
+```
+
+This runs the unit tests, rebuilds `TMate-1.0-Windows-Manual.pdf` from
+`docs/windows.md` (needs `python3-reportlab`; otherwise the existing PDF is
+shipped), converts the Windows scripts to CRLF, and writes
+`dist/TMate-1.0-Windows.zip` plus a `.sha256` file. To rebuild only the manual:
+`python3 tools/build_windows_manual.py`.
 
 ## Safety note
 
